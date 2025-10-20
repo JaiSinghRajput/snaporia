@@ -12,16 +12,16 @@ import ProfileHeader from "@/components/profile/ProfileHeader"
 import ProfilePostsGridClient from "@/components/profile/ProfilePostsGridClient"
 
 interface ProfilePageProps {
-  params: {
+  params: Promise<{
     username: string
-  }
+  }>
 }
 
 // Generate metadata for SEO
 export async function generateMetadata({
   params,
 }: ProfilePageProps): Promise<Metadata> {
-  const { username } = params
+  const { username } = await params
 
   try {
     const profile = await getUserProfileByUsername(username)
@@ -59,7 +59,7 @@ export async function generateMetadata({
 }
 
 export default async function ProfilePage({ params }: ProfilePageProps) {
-  const { username } = params
+  const { username } = await params
 
   // Get the profile
   const profile = await getUserProfileByUsername(username)
