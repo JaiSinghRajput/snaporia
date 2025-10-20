@@ -1,0 +1,322 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ============================================
+// USER PROFILE MODEL (extends Clerk user data)
+// ============================================
+model UserProfile {
+  id            String   @id @default(cuid())
+  clerkUserId   String   @unique // Link to Clerk user
+  username      String   @unique
+  email         String   @unique
+  firstName     String?
+  lastName      String?
+  bio           String?  @db.Text
+  avatar        String?  // URL to profile image
+  coverImage    String?  // URL to cover image
+  location      String?
+  website       String?
+  dateOfBirth   DateTime?
+  isVerified    Boolean  @default(false)
+  isPrivate     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  posts         Post[]
+  likes         Like[]
+  comments      Comment[]
+  shares        Share[]
+  views         View[]
+  
+  // Followers (users who follow this user)
+  followers     Follow[] @relation("UserFollowers")
+  // Following (users this user follows)
+  following     Follow[] @relation("UserFollowing")
+  
+  // Chat relations
+  sentMessages     Message[] @relation("MessageSender")
+  receivedMessages Message[] @relation("MessageReceiver")
+  conversations    ConversationParticipant[]
+  
+  // Notifications
+  notificationsReceived  Notification[] @relation("NotificationsReceived")
+  notificationsTriggered Notification[] @relation("NotificationsTriggered")
+
+  @@index([clerkUserId])
+  @@index([username])
+  @@index([email])
+  @@map("user_profiles")
+}
+
+// ============================================
+// FOLLOW/FRIEND RELATIONSHIP MODEL
+// ============================================
+model Follow {
+  id          String       @id @default(cuid())
+  followerId  String       // User who is following
+  followingId String       // User being followed
+  status      FollowStatus @default(ACCEPTED) // PENDING for private accounts, ACCEPTED otherwise
+  createdAt   DateTime     @default(now())
+
+  follower    UserProfile @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  following   UserProfile @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@index([status])
+  @@map("follows")
+}
+
+enum FollowStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+// ============================================
+// POST MODEL
+// ============================================
+model Post {
+  id          String      @id @default(cuid())
+  content     String      @db.Text
+  imageUrls   String[]    // Array of image URLs
+  videoUrl    String?     // Optional video URL
+  authorId    String
+  visibility  Visibility  @default(PUBLIC)
+  isPublished Boolean     @default(true)
+  publishedAt DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  author      UserProfile @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  likes       Like[]
+  comments    Comment[]
+  shares      Share[]
+  views       View[]
+  hashtags    HashtagOnPost[]
+
+  @@index([authorId])
+  @@index([createdAt])
+  @@index([publishedAt])
+  @@map("posts")
+}
+
+enum Visibility {
+  PUBLIC
+  PRIVATE
+  FOLLOWERS_ONLY
+}
+
+// ============================================
+// LIKE MODEL
+// ============================================
+model Like {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+
+  user      UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post        @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([postId])
+  @@index([userId])
+  @@map("likes")
+}
+
+// ============================================
+// COMMENT MODEL (with nested replies support)
+// ============================================
+model Comment {
+  id          String   @id @default(cuid())
+  content     String   @db.Text
+  userId      String
+  postId      String
+  parentId    String?  // For nested replies
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user        UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post        Post        @relation(fields: [postId], references: [id], onDelete: Cascade)
+  parent      Comment?    @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies     Comment[]   @relation("CommentReplies")
+
+  @@index([postId])
+  @@index([userId])
+  @@index([parentId])
+  @@map("comments")
+}
+
+// ============================================
+// SHARE MODEL
+// ============================================
+model Share {
+  id        String   @id @default(cuid())
+  userId    String
+  postId    String
+  createdAt DateTime @default(now())
+
+  user      UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post      Post        @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([userId])
+  @@map("shares")
+}
+
+// ============================================
+// VIEW/ANALYTICS MODEL
+// ============================================
+model View {
+  id        String   @id @default(cuid())
+  userId    String?  // Nullable for anonymous views
+  postId    String
+  viewedAt  DateTime @default(now())
+  ipAddress String?  // Optional: track unique views
+  userAgent String?  // Optional: for analytics
+
+  user      UserProfile? @relation(fields: [userId], references: [id], onDelete: SetNull)
+  post      Post         @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([userId])
+  @@index([viewedAt])
+  @@map("views")
+}
+
+// ============================================
+// HASHTAG SYSTEM
+// ============================================
+model Hashtag {
+  id        String   @id @default(cuid())
+  name      String   @unique // e.g., "javascript"
+  count     Int      @default(0) // Number of posts using this hashtag
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  posts     HashtagOnPost[]
+
+  @@index([name])
+  @@index([count])
+  @@map("hashtags")
+}
+
+model HashtagOnPost {
+  id         String   @id @default(cuid())
+  postId     String
+  hashtagId  String
+  createdAt  DateTime @default(now())
+
+  post       Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  hashtag    Hashtag  @relation(fields: [hashtagId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, hashtagId])
+  @@index([postId])
+  @@index([hashtagId])
+  @@map("hashtags_on_posts")
+}
+
+// ============================================
+// CHAT/MESSAGING SYSTEM
+// ============================================
+model Conversation {
+  id            String   @id @default(cuid())
+  isGroup       Boolean  @default(false)
+  groupName     String?
+  groupImage    String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  lastMessageAt DateTime @default(now())
+
+  participants  ConversationParticipant[]
+  messages      Message[]
+
+  @@index([lastMessageAt])
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id             String   @id @default(cuid())
+  conversationId String
+  userId         String
+  joinedAt       DateTime @default(now())
+  lastReadAt     DateTime @default(now())
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           UserProfile  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+  @@index([conversationId])
+  @@map("conversation_participants")
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  content        String   @db.Text
+  imageUrl       String?
+  conversationId String
+  senderId       String
+  receiverId     String?  // For direct messages
+  isRead         Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         UserProfile  @relation("MessageSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver       UserProfile? @relation("MessageReceiver", fields: [receiverId], references: [id], onDelete: SetNull)
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([createdAt])
+  @@map("messages")
+}
+
+// ============================================
+// NOTIFICATION SYSTEM (optional for future)
+// ============================================
+model Notification {
+  id          String           @id @default(cuid())
+  userId      String           // User receiving the notification
+  actorId     String?          // User who triggered the notification
+  type        NotificationType
+  title       String
+  message     String           @db.Text
+  link        String?
+  postId      String?          // Related post ID if applicable
+  isRead      Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+
+  user        UserProfile      @relation("NotificationsReceived", fields: [userId], references: [id], onDelete: Cascade)
+  actor       UserProfile?     @relation("NotificationsTriggered", fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([actorId])
+  @@index([isRead])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  LIKE
+  COMMENT
+  FOLLOW
+  FOLLOW_REQUEST
+  SHARE
+  MENTION
+}
