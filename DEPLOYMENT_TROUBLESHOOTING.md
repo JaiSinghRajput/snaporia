@@ -84,9 +84,33 @@ const { username } = await params
 public/ffmpeg/
 ```
 
+### Issue 6: SSO Callback Prerendering Error
+
+**Error:** 
+```
+Export encountered an error on /sso-callback/page
+Error: Event handlers cannot be passed to Client Component props
+```
+
+**Cause:** Next.js trying to prerender pages with client-side only components (like Clerk's auth callback).
+
+**Solution:** ✅ Added dynamic rendering to auth pages:
+```typescript
+// In src/app/sso-callback/page.tsx
+export const dynamic = 'force-dynamic'
+```
+
+### Issue 7: Missing 404 Page
+
+**Error:** Build failing when trying to generate 404 page.
+
+**Cause:** No custom not-found page for App Router.
+
+**Solution:** ✅ Created `src/app/not-found.tsx` with 'use client' directive.
+
 ## Build Configuration
 
-### netlify.toml
+### netlify.toml (Simplified)
 ```toml
 [build]
   command = "npm run build"
@@ -94,11 +118,13 @@ public/ffmpeg/
 
 [build.environment]
   NODE_VERSION = "20"
-  NPM_FLAGS = "--legacy-peer-deps"
 
+# The plugin handles everything automatically
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 ```
+
+**Note:** Removed custom redirects and headers - the Next.js plugin handles these automatically.
 
 ### Environment Variables Checklist
 
