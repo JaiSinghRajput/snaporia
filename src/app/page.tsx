@@ -58,7 +58,7 @@ export default function HomePage() {
                   Welcome back, {user?.firstName || "there"}!
                 </h2>
                 <p className="text-gray-600 dark:text-gray-400">
-                  What's on your mind today?
+                  What&apos;s on your mind today?
                 </p>
               </div>
 

@@ -74,10 +74,11 @@ export default function CreatePost({ onClose, onPostCreated }: CreatePostProps) 
       }
 
       setUploadProgress("")
-    } catch (err: any) {
-      console.error('Upload error:', err)
-      setError(err.message || 'Failed to upload file')
-      setToast({ message: err.message || 'Failed to upload file', show: true })
+    } catch (err) {
+      const error = err as Error
+      console.error('Upload error:', error)
+      setError(error.message || 'Failed to upload file')
+      setToast({ message: error.message || 'Failed to upload file', show: true })
     } finally {
       setIsUploading(false)
     }

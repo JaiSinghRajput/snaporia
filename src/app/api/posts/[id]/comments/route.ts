@@ -96,13 +96,13 @@ export async function POST(
         data: {
           userId: post.authorId,
           actorId: me.id,
-          type: 'COMMENT' as any,
+          type: 'COMMENT',
           title: 'New comment',
           message: 'commented on your post',
           link: `/post/${postId}`,
           postId,
         },
-      } as any)
+      })
     }
 
     return NextResponse.json({ comment }, { status: 201 })

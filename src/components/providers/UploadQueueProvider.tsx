@@ -55,7 +55,7 @@ export default function UploadQueueProvider({ children }: { children: React.Reac
       const worker = new Worker('/videoCompressor.worker.js')
       const compressedFile: File = await new Promise((resolve, reject) => {
         worker.onmessage = (e: MessageEvent) => {
-          const data: any = e.data
+          const data = e.data as { progress?: number; time?: number; error?: string; compressed?: Uint8Array }
           if (typeof data?.progress === 'number') {
             setProgress(Math.round(data.progress * 100))
             if (typeof data.time === 'number') setSubtext(`t=${Math.round(data.time)}s`)
@@ -72,7 +72,7 @@ export default function UploadQueueProvider({ children }: { children: React.Reac
             worker.terminate()
             return
           }
-          const blob = new Blob([data.compressed], { type: 'video/mp4' })
+          const blob = new Blob([new Uint8Array(data.compressed)], { type: 'video/mp4' })
           const file = new File([blob], 'video.mp4', { 
             type: 'video/mp4',
             lastModified: Date.now()
@@ -81,8 +81,8 @@ export default function UploadQueueProvider({ children }: { children: React.Reac
           resolve(file)
           worker.terminate()
         }
-        worker.onerror = (err) => {
-          reject(new Error((err as any)?.message || 'Compression failed'))
+        worker.onerror = (err: ErrorEvent) => {
+          reject(new Error(err.message || 'Compression failed'))
           worker.terminate()
         }
         worker.postMessage({ file: job.file, quality: '1M' })
@@ -130,9 +130,10 @@ export default function UploadQueueProvider({ children }: { children: React.Reac
       job.onDone?.(true)
       // Hide after a moment
       setTimeout(() => { setVisible(false); setProgress(0); setMessage(''); workingRef.current = false }, 1200)
-    } catch (e: any) {
+    } catch (e) {
+      const error = e as Error
       job.onDone?.(false)
-      setMessage(e?.message || 'Background post failed')
+      setMessage(error?.message || 'Background post failed')
       setSubtext('')
       setProgress(0)
       // Keep bar visible briefly then hide

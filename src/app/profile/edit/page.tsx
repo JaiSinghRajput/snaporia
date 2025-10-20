@@ -19,7 +19,13 @@ export default function EditProfilePage() {
     dateOfBirth: "",
     isPrivate: false,
   })
-  const [initialProfile, setInitialProfile] = useState<any>(null)
+  const [initialProfile, setInitialProfile] = useState<{
+    bio?: string;
+    location?: string;
+    website?: string;
+    dateOfBirth?: string;
+    isPrivate?: boolean;
+  } | null>(null)
 
   useEffect(() => {
     // Fetch current profile from API
@@ -65,11 +71,10 @@ export default function EditProfilePage() {
     e.preventDefault()
     setIsLoading(true)
     // Only send changed fields, keep existing for blank
-    type ProfileKey = keyof typeof formData
-    const payload: Partial<typeof formData> = {};
+    const payload: Record<string, string | boolean> = {};
     (Object.keys(formData) as (keyof typeof formData)[]).forEach((key: keyof typeof formData) => {
       if (formData[key] !== (initialProfile?.[key] ?? "")) {
-        (payload as any)[key] = formData[key]
+        payload[key] = formData[key]
       }
     })
     try {

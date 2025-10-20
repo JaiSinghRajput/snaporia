@@ -42,14 +42,14 @@ export async function GET() {
           },
         },
       },
-    } as any)
+    })
 
     // Get pending follow requests
     const followRequests = await prisma.follow.findMany({
       where: {
         followingId: currentUserProfile.id,
         status: 'PENDING',
-      } as any,
+      },
       include: {
         follower: {
           select: {
@@ -65,10 +65,10 @@ export async function GET() {
       orderBy: {
         createdAt: 'desc',
       },
-    } as any)
+    })
 
     // Convert follow requests to notification format
-    const followRequestNotifications = followRequests.map((req: any) => ({
+    const followRequestNotifications = followRequests.map((req) => ({
       id: `follow_request_${req.id}`,
       type: 'FOLLOW_REQUEST',
       content: 'wants to follow you',
@@ -83,7 +83,7 @@ export async function GET() {
     // Combine and sort all notifications
     const allNotifications = [
       ...followRequestNotifications,
-      ...regularNotifications.map((notif: any) => ({
+      ...regularNotifications.map((notif) => ({
         id: notif.id,
         type: notif.type,
         content: notif.message,

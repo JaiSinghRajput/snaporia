@@ -104,7 +104,7 @@ export async function updateUserProfile(id: string, data: Partial<{
  * Check if user is following another user
  * Returns the follow status: null (not following), 'PENDING', 'ACCEPTED', or 'REJECTED'
  */
-export async function getFollowStatus(followerId: string, followingId: string) {
+export async function getFollowStatus(followerId: string, followingId: string): Promise<'PENDING' | 'ACCEPTED' | 'REJECTED' | null> {
   const follow = await prisma.follow.findUnique({
     where: {
       followerId_followingId: {
@@ -112,7 +112,10 @@ export async function getFollowStatus(followerId: string, followingId: string) {
         followingId,
       },
     },
-  }) as any
+    select: {
+      status: true,
+    },
+  })
   return follow?.status || null
 }
 
@@ -127,7 +130,10 @@ export async function isFollowing(followerId: string, followingId: string) {
         followingId,
       },
     },
-  }) as any
+    select: {
+      status: true,
+    },
+  })
   return follow?.status === 'ACCEPTED'
 }
 
@@ -142,7 +148,10 @@ export async function isFollowedBy(userId: string, potentialFollowerId: string) 
         followingId: userId,
       },
     },
-  }) as any
+    select: {
+      status: true,
+    },
+  })
   return follow?.status === 'ACCEPTED'
 }
 
@@ -155,7 +164,7 @@ export async function followUser(followerId: string, followingId: string, target
       followerId,
       followingId,
       status: targetIsPrivate ? 'PENDING' : 'ACCEPTED',
-    } as any,
+    },
   })
 }
 
@@ -172,7 +181,7 @@ export async function acceptFollowRequest(followerId: string, followingId: strin
     },
     data: {
       status: 'ACCEPTED',
-    } as any,
+    },
   })
 }
 
@@ -212,7 +221,7 @@ export async function getPendingFollowRequests(userId: string) {
     where: {
       followingId: userId,
       status: 'PENDING',
-    } as any,
+    },
     include: {
       follower: {
         select: {

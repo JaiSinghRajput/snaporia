@@ -27,7 +27,7 @@ interface ProfileHeaderProps {
       following: number
     }
   }
-  followStatus?: 'PENDING' | 'ACCEPTED' | null
+  followStatus?: 'PENDING' | 'ACCEPTED' | 'REJECTED' | null
   isFollowingYou?: boolean
   isOwnProfile: boolean
 }

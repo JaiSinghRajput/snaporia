@@ -28,13 +28,13 @@ export async function POST(
         data: {
           userId: post.authorId,
           actorId: me.id,
-          type: 'SHARE' as any,
+          type: 'SHARE',
           title: 'Your post was shared',
           message: 'shared your post',
           link: `/post/${postId}`,
           postId,
         },
-      } as any)
+      })
     }
 
     const count = await prisma.share.count({ where: { postId } })

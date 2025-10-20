@@ -51,13 +51,13 @@ export async function POST(
           data: {
             userId: post.authorId,
             actorId: me.id,
-            type: 'LIKE' as any,
+            type: 'LIKE',
             title: 'New like',
             message: 'liked your post',
             link: `/post/${postId}`,
             postId,
           },
-        } as any)
+        })
       }
     }
 

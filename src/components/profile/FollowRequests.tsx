@@ -81,7 +81,7 @@ export default function FollowRequests() {
           No follow requests
         </p>
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          When people request to follow you, they'll appear here
+          When people request to follow you, they&apos;ll appear here
         </p>
       </div>
     )

@@ -7,7 +7,7 @@ import { UserPlus, UserMinus, Loader2, Clock, UserCheck } from "lucide-react"
 interface FollowButtonProps {
   targetUserId: string
   initialIsFollowing: boolean
-  initialFollowStatus?: 'PENDING' | 'ACCEPTED' | null
+  initialFollowStatus?: 'PENDING' | 'ACCEPTED' | 'REJECTED' | null
   isFollowingYou?: boolean
   isOwnProfile?: boolean
 }

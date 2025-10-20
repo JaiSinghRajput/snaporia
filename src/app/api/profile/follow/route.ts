@@ -60,7 +60,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Target user not found' }, { status: 404 })
     }
 
-    const followResult = await followUser(currentUserProfile.id, targetUserId, targetUser.isPrivate) as any
+    const followResult = await followUser(currentUserProfile.id, targetUserId, targetUser.isPrivate)
 
     return NextResponse.json({ 
       success: true, 

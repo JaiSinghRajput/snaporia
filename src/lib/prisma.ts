@@ -1,5 +1,5 @@
 declare global {
-  // eslint-disable-next-line no-var
+  // eslint-disable-next-line no-var -- Required for global augmentation
   var prisma: import('@prisma/client').PrismaClient | undefined;
 }
 import { PrismaClient } from '@prisma/client'

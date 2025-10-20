@@ -34,7 +34,7 @@ export async function GET() {
       where: {
         followingId: currentUserProfile.id,
         status: 'PENDING',
-      } as any,
+      },
     })
 
     const totalCount = unreadNotifications + pendingRequests

@@ -189,7 +189,7 @@ export default function NotificationsPage() {
                       No notifications yet
                     </p>
                     <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
-                      We'll notify you when something happens
+                      We&apos;ll notify you when something happens
                     </p>
                   </div>
                 ) : (

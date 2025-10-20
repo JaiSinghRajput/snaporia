@@ -72,7 +72,7 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
   const { userId } = await auth()
   let currentUserProfile = null
   let isOwnProfile = false
-  let followStatus: 'PENDING' | 'ACCEPTED' | null = null
+  let followStatus: 'PENDING' | 'ACCEPTED' | 'REJECTED' | null = null
   let isFollowingYou = false
 
   if (userId) {
