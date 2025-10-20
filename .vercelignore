@@ -1,0 +1,10 @@
+# Exclude ffmpeg files (not currently used - using passthrough worker)
+public/ffmpeg/
+
+# Exclude large documentation files
+*.md
+!README.md
+
+# Exclude development files
+.env.local
+.env.example
