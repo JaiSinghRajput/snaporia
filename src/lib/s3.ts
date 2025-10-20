@@ -1,15 +1,16 @@
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3'
 import { v4 as uuidv4 } from 'uuid'
 
-const REGION = process.env.AWS_REGION!
-const BUCKET = process.env.AWS_S3_BUCKET!
-const PREFIX = (process.env.AWS_S3_PREFIX || '').replace(/^\/+|\/+$/g, '') // trim leading/trailing slashes
+// Use custom variable names for Netlify compatibility (Netlify reserves AWS_* variables)
+const REGION = process.env.SNAPORIA_AWS_REGION!
+const BUCKET = process.env.SNAPORIA_AWS_S3_BUCKET!
+const PREFIX = (process.env.SNAPORIA_AWS_S3_PREFIX || '').replace(/^\/+|\/+$/g, '') // trim leading/trailing slashes
 
 const s3 = new S3Client({
   region: REGION,
   credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    accessKeyId: process.env.SNAPORIA_AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.SNAPORIA_AWS_SECRET_ACCESS_KEY!,
   },
 })
 

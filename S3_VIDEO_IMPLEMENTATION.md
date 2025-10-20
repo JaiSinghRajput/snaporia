@@ -38,11 +38,13 @@
 
 ### 5. Environment Variables (`.env.local`)
 ```bash
-AWS_REGION="your-region"
-AWS_ACCESS_KEY_ID=your-access-key-id
-AWS_SECRET_ACCESS_KEY=your-secret-access-key
-AWS_S3_BUCKET="your-bucket-name"
-AWS_S3_PREFIX="snaporia"
+# Note: Using SNAPORIA_ prefix for Netlify compatibility
+# (Netlify reserves AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
+SNAPORIA_AWS_REGION="your-region"
+SNAPORIA_AWS_ACCESS_KEY_ID=your-access-key-id
+SNAPORIA_AWS_SECRET_ACCESS_KEY=your-secret-access-key
+SNAPORIA_AWS_S3_BUCKET="your-bucket-name"
+SNAPORIA_AWS_S3_PREFIX="snaporia"
 ```
 
 ## How It Works
