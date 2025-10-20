@@ -11,6 +11,10 @@ import { getUserPosts } from "@/lib/posts"
 import ProfileHeader from "@/components/profile/ProfileHeader"
 import ProfilePostsGridClient from "@/components/profile/ProfilePostsGridClient"
 
+// Force dynamic rendering for this page
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 interface ProfilePageProps {
   params: Promise<{
     username: string

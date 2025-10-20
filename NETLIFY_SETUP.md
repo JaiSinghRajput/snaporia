@@ -45,8 +45,11 @@ SNAPORIA_AWS_S3_PREFIX=snaporia
 
 ## Build Settings
 
-**Build command:** `pnpm run build`  
-**Publish directory:** `.next`
+**Build command:** `npm run build`  
+**Publish directory:** `.next`  
+**Node version:** 20
+
+> **Note:** The build uses standard webpack (not Turbopack) for Netlify compatibility. Use `npm run build:turbo` locally if you want to test with Turbopack.
 
 ## Important Notes:
 
