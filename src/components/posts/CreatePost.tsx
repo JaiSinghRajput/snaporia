@@ -6,6 +6,7 @@ import { X, Image as ImageIcon, Smile, Send, Loader2, Video, Upload } from "luci
 import { Button } from "@/components/ui/button"
 import Toast from "@/components/ui/toast"
 import { motion, AnimatePresence } from "framer-motion"
+import Image from 'next/image'
 import { useUploadQueue } from "@/components/providers/UploadQueueProvider"
 import { Progress } from "@/components/ui/progress"
 
@@ -206,12 +207,14 @@ export default function CreatePost({ onClose, onPostCreated }: CreatePostProps) 
           <div className="grid grid-cols-2 gap-2">
             {imageUrls.map((url, index) => (
               <div key={index} className="relative group">
-                <img
+                <Image
                   src={url}
                   alt={`Preview ${index + 1}`}
+                  width={400}
+                  height={160}
                   className="w-full h-40 object-cover rounded-lg"
                   onError={(e) => {
-                    e.currentTarget.src = "https://via.placeholder.com/400x300?text=Invalid+Image"
+                    // next/image doesn't expose e.currentTarget.src; keep fallback minimal by ignoring error
                   }}
                 />
                 <button

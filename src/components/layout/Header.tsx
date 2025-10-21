@@ -1,10 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs"
+import { SignedIn, SignedOut } from "@clerk/nextjs"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
-import { Sun, Moon } from "lucide-react"
+import { Sun, Moon, MessageCircle } from "lucide-react"
 import NotificationDropdown from "./NotificationDropdown"
 
 export default function Header() {
@@ -64,7 +64,14 @@ export default function Header() {
 
         <SignedIn>
           <NotificationDropdown />
-          <UserButton />
+          <button
+            onClick={() => router.push('/messages')}
+            className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition"
+            title="Chats"
+          >
+            <MessageCircle className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+          </button>
+          {/* Settings drawer trigger will go here */}
         </SignedIn>
       </div>
     </header>

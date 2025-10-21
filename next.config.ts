@@ -12,6 +12,14 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: '**.amazonaws.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'www.bing.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'analyticsindiamag.com',
+      },
     ],
   },
   // Optimize build output

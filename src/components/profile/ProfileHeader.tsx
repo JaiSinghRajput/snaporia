@@ -1,7 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { MapPin, Link as LinkIcon, Calendar, CheckCircle } from "lucide-react"
+import Image from "next/image"
+import { MapPin, Link as LinkIcon, Calendar, CheckCircle, MessageCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import FollowButton from "./FollowButton"
 import FollowListModal from "./FollowListModal"
@@ -40,6 +41,7 @@ export default function ProfileHeader({
 }: ProfileHeaderProps) {
   const router = useRouter()
   const [modalType, setModalType] = useState<"followers" | "following" | null>(null)
+  const [loadingMessage, setLoadingMessage] = useState(false)
 
   const fullName = [profile.firstName, profile.lastName].filter(Boolean).join(" ")
   const joinDate = new Date(profile.createdAt).toLocaleDateString("en-US", {
@@ -47,15 +49,37 @@ export default function ProfileHeader({
     year: "numeric",
   })
 
+  const handleMessageClick = async () => {
+    setLoadingMessage(true)
+    try {
+      const res = await fetch("/api/chat/create-conversation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ recipientId: profile.id }),
+      })
+      const data = await res.json()
+      if (data.conversationId) {
+        router.push(`/messages/${data.conversationId}`)
+      }
+    } catch (error) {
+      console.error("Failed to create conversation:", error)
+    } finally {
+      setLoadingMessage(false)
+    }
+  }
+
   return (
     <div className="w-full">
       {/* Cover Image */}
       <div className="h-48 md:h-64 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 relative">
         {profile.coverImage && (
-          <img
+          <Image
             src={profile.coverImage}
             alt="Cover"
-            className="w-full h-full object-cover"
+            fill
+            sizes="100vw"
+            className="object-cover"
+            priority
           />
         )}
       </div>
@@ -67,9 +91,11 @@ export default function ProfileHeader({
           <div className="absolute -top-16 md:-top-20">
             <div className="w-32 h-32 md:w-40 md:h-40 rounded-full border-4 border-white dark:border-gray-900 bg-gray-200 dark:bg-gray-700 overflow-hidden">
               {profile.avatar ? (
-                <img
+                <Image
                   src={profile.avatar}
                   alt={profile.username}
+                  width={160}
+                  height={160}
                   className="w-full h-full object-cover"
                 />
               ) : (
@@ -81,7 +107,7 @@ export default function ProfileHeader({
           </div>
 
           {/* Actions */}
-          <div className="pt-4 flex justify-end gap-2">
+          <div className="pt-20 md:pt-24 flex justify-end gap-2">
             {isOwnProfile ? (
               <Button
                 onClick={() => router.push("/profile/edit")}
@@ -90,12 +116,23 @@ export default function ProfileHeader({
                 Edit Profile
               </Button>
             ) : (
-              <FollowButton
-                targetUserId={profile.id}
-                initialIsFollowing={followStatus === 'ACCEPTED'}
-                initialFollowStatus={followStatus}
-                isFollowingYou={isFollowingYou}
-              />
+              <>
+                <Button
+                  onClick={handleMessageClick}
+                  variant="outline"
+                  disabled={loadingMessage}
+                  className="gap-2"
+                >
+                  <MessageCircle className="w-4 h-4" />
+                  {loadingMessage ? "Loading..." : "Message"}
+                </Button>
+                <FollowButton
+                  targetUserId={profile.id}
+                  initialIsFollowing={followStatus === 'ACCEPTED'}
+                  initialFollowStatus={followStatus}
+                  isFollowingYou={isFollowingYou}
+                />
+              </>
             )}
           </div>
         </div>

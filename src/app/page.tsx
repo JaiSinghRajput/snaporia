@@ -9,6 +9,7 @@ import CreatePost from "@/components/posts/CreatePost"
 import PostFeed from "@/components/posts/PostFeed"
 import LeftSidebar from "@/components/layout/LeftSidebar"
 import RightSidebar from "@/components/layout/RightSidebar"
+import Image from "next/image"
 
 export default function HomePage() {
   const router = useRouter()
@@ -68,9 +69,11 @@ export default function HomePage() {
                 className="w-full mb-6 p-4 bg-white dark:bg-gray-900 rounded-xl shadow-md hover:shadow-lg transition flex items-center gap-3 text-left group"
               >
                 {user?.imageUrl ? (
-                  <img
+                  <Image
                     src={user.imageUrl}
                     alt={user.firstName || "User"}
+                    width={40}
+                    height={40}
                     className="w-10 h-10 rounded-full object-cover"
                   />
                 ) : (

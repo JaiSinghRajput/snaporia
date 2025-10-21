@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import { SignedIn, SignedOut, useAuth } from "@clerk/nextjs"
 import { Bell, Heart, MessageCircle, Share2, UserPlus, UserCheck, X, Loader2 } from "lucide-react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
 import LeftSidebar from "@/components/layout/LeftSidebar"
 import RightSidebar from "@/components/layout/RightSidebar"
 import { Button } from "@/components/ui/button"
@@ -240,8 +241,8 @@ export default function NotificationsPage() {
                             .filter(Boolean)
                             .join(" ")
                         : ""
-                      const displayName =
-                        fullName || notification.actor?.username
+                      const displayName: string =
+                        fullName || notification.actor?.username || "User"
 
                       return (
                         <div
@@ -263,9 +264,11 @@ export default function NotificationsPage() {
                                   }
                                 >
                                   {notification.actor.avatar ? (
-                                    <img
+                                    <Image
                                       src={notification.actor.avatar}
                                       alt={displayName}
+                                      width={48}
+                                      height={48}
                                       className="w-12 h-12 rounded-full object-cover"
                                     />
                                   ) : (

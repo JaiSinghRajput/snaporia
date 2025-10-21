@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { Loader2, UserCheck, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { motion, AnimatePresence } from "framer-motion"
+import Image from "next/image"
 
 interface FollowRequest {
   id: string
@@ -109,9 +110,11 @@ export default function FollowRequests() {
                 onClick={() => router.push(`/profile/${request.follower.username}`)}
               >
                 {request.follower.avatar ? (
-                  <img
+                  <Image
                     src={request.follower.avatar}
                     alt={displayName}
+                    width={56}
+                    height={56}
                     className="w-14 h-14 rounded-full object-cover ring-2 ring-gray-100 dark:ring-gray-800"
                   />
                 ) : (

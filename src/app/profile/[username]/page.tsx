@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation"
+import Image from "next/image"
 import { Metadata } from "next"
 import { auth } from "@clerk/nextjs/server"
 import { 
@@ -135,11 +136,13 @@ export default async function ProfilePage({ params }: ProfilePageProps) {
                 className="bg-white dark:bg-gray-900 rounded-xl shadow-md overflow-hidden hover:shadow-lg transition cursor-pointer"
               >
                 {post.imageUrls.length > 0 && (
-                  <div className="h-48 bg-gray-200 dark:bg-gray-800">
-                    <img
+                  <div className="h-48 bg-gray-200 dark:bg-gray-800 relative">
+                    <Image
                       src={post.imageUrls[0]}
                       alt="Post"
-                      className="w-full h-full object-cover"
+                      fill
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      className="object-cover"
                     />
                   </div>
                 )}

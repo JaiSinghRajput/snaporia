@@ -6,6 +6,7 @@ import { Heart, MessageCircle, Share2, Eye, MoreVertical } from "lucide-react"
 import { motion } from "framer-motion"
 import CommentsDrawer from "./CommentsDrawer"
 import ShareModal from "./ShareModal"
+import Image from "next/image"
 
 interface PostCardProps {
   post: {
@@ -145,9 +146,11 @@ export default function PostCard({ post }: PostCardProps) {
             onClick={() => router.push(`/profile/${post.author.username}`)}
           >
             {post.author.avatar ? (
-              <img
+              <Image
                 src={post.author.avatar}
                 alt={displayName}
+                width={40}
+                height={40}
                 className="w-10 h-10 rounded-full object-cover"
               />
             ) : (
@@ -221,9 +224,11 @@ export default function PostCard({ post }: PostCardProps) {
                   post.imageUrls.length === 3 && index === 0 ? "col-span-2" : ""
                 }`}
               >
-                <img
+                <Image
                   src={url}
                   alt={`Post image ${index + 1}`}
+                  width={800}
+                  height={800}
                   className="w-full h-64 object-cover cursor-pointer hover:opacity-95 transition"
                   onClick={() => window.open(url, "_blank")}
                 />

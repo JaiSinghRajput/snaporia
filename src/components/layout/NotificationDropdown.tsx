@@ -6,6 +6,7 @@ import { useAuth } from "@clerk/nextjs"
 import { Bell, Loader2, UserPlus, Heart, MessageCircle, Share2, UserCheck, X } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
+import Image from "next/image"
 
 interface Notification {
   id: string
@@ -269,9 +270,11 @@ export default function NotificationDropdown() {
                                 onClick={() => handleNotificationClick(notification)}
                               >
                                 {notification.actor.avatar ? (
-                                  <img
+                                  <Image
                                     src={notification.actor.avatar}
-                                    alt={displayName}
+                                    alt={displayName || notification.actor.username}
+                                    width={40}
+                                    height={40}
                                     className="w-10 h-10 rounded-full object-cover"
                                   />
                                 ) : (

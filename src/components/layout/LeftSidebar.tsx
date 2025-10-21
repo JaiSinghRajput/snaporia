@@ -3,6 +3,7 @@
 import { useUser } from "@clerk/nextjs"
 import { Home, Search, Bell, User, TrendingUp, Users } from "lucide-react"
 import { useRouter, usePathname } from "next/navigation"
+import Image from "next/image"
 
 export default function LeftSidebar() {
   const { user } = useUser()
@@ -14,6 +15,7 @@ export default function LeftSidebar() {
     { icon: Search, label: "Explore", path: "/explore" },
     { icon: Bell, label: "Notifications", path: "/notifications" },
     { icon: User, label: "Profile", path: `/profile/${user?.username}` },
+    { icon: Users, label: "Messages", path: "/messages" },
   ]
 
   return (
@@ -45,9 +47,11 @@ export default function LeftSidebar() {
           <div className="p-3 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
             <div className="flex items-center md:justify-center lg:justify-start gap-3">
               {user.imageUrl ? (
-                <img
+                <Image
                   src={user.imageUrl}
                   alt={user.firstName || "User"}
+                  width={40}
+                  height={40}
                   className="w-10 h-10 rounded-full object-cover flex-shrink-0"
                 />
               ) : (

@@ -141,7 +141,7 @@ export default function FollowListModal({
                           {user.avatar ? (
                             <img
                               src={user.avatar}
-                              alt={displayName}
+                              alt={displayName || user.username}
                               className="w-14 h-14 rounded-full object-cover ring-2 ring-gray-100 dark:ring-gray-800"
                             />
                           ) : (

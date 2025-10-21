@@ -1,6 +1,7 @@
 "use client"
 
 import { TrendingUp, Hash, UserPlus } from "lucide-react"
+import Image from "next/image"
 
 export default function RightSidebar() {
   const trends = [
@@ -77,9 +78,11 @@ export default function RightSidebar() {
               className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer transition"
             >
               {user.avatar ? (
-                <img
+                <Image
                   src={user.avatar}
                   alt={user.name}
+                  width={40}
+                  height={40}
                   className="w-10 h-10 rounded-full object-cover"
                 />
               ) : (

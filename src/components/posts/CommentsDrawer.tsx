@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { X, Send } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import Image from 'next/image'
 
 interface CommentsDrawerProps {
   postId: string
@@ -105,7 +106,7 @@ export default function CommentsDrawer({ postId, isOpen, onClose }: CommentsDraw
             comments.map((c) => (
               <div key={c.id} className="flex gap-3">
                 {c.user.avatar ? (
-                  <img src={c.user.avatar} alt={c.user.username} className="w-9 h-9 rounded-full object-cover" />
+                  <Image src={c.user.avatar} alt={c.user.username} width={36} height={36} className="w-9 h-9 rounded-full object-cover" />
                 ) : (
                   <div className="w-9 h-9 rounded-full bg-indigo-500/20 text-indigo-700 flex items-center justify-center font-bold">
                     {c.user.username[0].toUpperCase()}

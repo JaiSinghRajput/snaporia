@@ -5,6 +5,7 @@ import "./globals.css"
 import Header from "@/components/layout/Header"
 import ProfileSync from "@/components/auth/ProfileSync"
 import UploadQueueProvider from "@/components/providers/UploadQueueProvider"
+import RouteProgress from "@/components/layout/RouteProgress"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,6 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <ClerkProvider>
       <html lang="en">
         <body className={`${geistSans.variable} ${geistMono.variable}`}>
+          <RouteProgress />
           <UploadQueueProvider>
             <ProfileSync />
             <Header/>
