@@ -34,6 +34,7 @@ export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(true)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [bulkMarking, setBulkMarking] = useState(false)
 
   useEffect(() => {
     if (isLoaded && userId) {
@@ -53,6 +54,24 @@ export default function NotificationsPage() {
       console.error("Error fetching notifications:", error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const markAllAsRead = async () => {
+    // Optimistic update
+    setBulkMarking(true)
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })))
+    try {
+      const res = await fetch('/api/notifications/read-all', { method: 'POST' })
+      if (!res.ok) {
+        // Re-fetch to sync if server failed
+        await fetchNotifications()
+      }
+    } catch (e) {
+      // On error, re-fetch to restore correct state
+      await fetchNotifications()
+    } finally {
+      setBulkMarking(false)
     }
   }
 
@@ -167,13 +186,31 @@ export default function NotificationsPage() {
           <main className="flex-1 md:ml-20 lg:ml-64 xl:mr-80 min-h-screen border-x border-gray-200 dark:border-gray-800">
             <div className="max-w-2xl mx-auto w-full py-6 px-4">
               {/* Header */}
-              <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-                  Notifications
-                </h1>
-                <p className="text-gray-600 dark:text-gray-400">
-                  Stay updated with your activity
-                </p>
+              <div className="mb-6 flex items-end justify-between gap-3">
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                    Notifications
+                  </h1>
+                  <p className="text-gray-600 dark:text-gray-400">
+                    Stay updated with your activity
+                  </p>
+                </div>
+                {notifications.some((n) => !n.isRead) && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={markAllAsRead}
+                    disabled={bulkMarking}
+                  >
+                    {bulkMarking ? (
+                      <span className="inline-flex items-center gap-2">
+                        <Loader2 className="w-4 h-4 animate-spin" /> Marking…
+                      </span>
+                    ) : (
+                      'Mark all as read'
+                    )}
+                  </Button>
+                )}
               </div>
 
               {/* Notifications List */}
