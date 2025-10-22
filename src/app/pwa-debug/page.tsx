@@ -2,14 +2,27 @@
 
 import { useEffect, useState } from "react"
 
+interface PWAInfo {
+  isStandalone?: boolean
+  isSecure?: boolean
+  protocol?: string
+  hasServiceWorker?: boolean
+  swStatus?: string
+  manifestUrl?: string | null
+  manifestData?: Record<string, unknown> | null
+  userAgent?: string
+  hasBeforeInstallPrompt?: boolean
+  displayMode?: string
+}
+
 export default function PWADebugPage() {
-  const [info, setInfo] = useState<any>({})
+  const [info, setInfo] = useState<PWAInfo>({})
 
   useEffect(() => {
     const checkPWAStatus = async () => {
       const isStandalone = 
         window.matchMedia('(display-mode: standalone)').matches ||
-        (window.navigator as any).standalone ||
+        (window.navigator as unknown as { standalone?: boolean }).standalone ||
         document.referrer.includes('android-app://')
 
       const hasServiceWorker = 'serviceWorker' in navigator
@@ -27,7 +40,7 @@ export default function PWADebugPage() {
         try {
           const response = await fetch(manifestUrl)
           manifestData = await response.json()
-        } catch (e) {
+        } catch {
           manifestData = { error: 'Failed to fetch manifest' }
         }
       }
@@ -144,7 +157,7 @@ export default function PWADebugPage() {
               <strong className="text-blue-500">Android Chrome:</strong>
               <ol className="list-decimal list-inside ml-4 mt-2 space-y-1">
                 <li>Tap the ⋮ (three dots) menu</li>
-                <li>Select "Install app" or "Add to Home screen"</li>
+                <li>Select &quot;Install app&quot; or &quot;Add to Home screen&quot;</li>
                 <li>Follow the prompts</li>
               </ol>
             </div>
@@ -152,15 +165,15 @@ export default function PWADebugPage() {
               <strong className="text-blue-500">iOS Safari:</strong>
               <ol className="list-decimal list-inside ml-4 mt-2 space-y-1">
                 <li>Tap the Share button</li>
-                <li>Scroll and tap "Add to Home Screen"</li>
-                <li>Tap "Add"</li>
+                <li>Scroll and tap &quot;Add to Home Screen&quot;</li>
+                <li>Tap &quot;Add&quot;</li>
               </ol>
             </div>
             <div>
               <strong className="text-blue-500">Desktop Chrome:</strong>
               <ol className="list-decimal list-inside ml-4 mt-2 space-y-1">
                 <li>Look for the install icon in the address bar</li>
-                <li>Or use the ⋮ menu → "Install Snaporia"</li>
+                <li>Or use the ⋮ menu → &quot;Install Snaporia&quot;</li>
               </ol>
             </div>
           </div>
