@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
+import { pushUserNotification } from '@/lib/notifications'
 import { getCurrentUserProfile } from '@/lib/user'
 
 // GET /api/posts/[id]/comments - list comments
@@ -102,6 +103,13 @@ export async function POST(
           link: `/post/${postId}`,
           postId,
         },
+      })
+      await pushUserNotification(post.authorId, {
+        type: 'COMMENT',
+        title: 'New comment',
+        message: 'commented on your post',
+        link: `/post/${postId}`,
+        postId,
       })
     }
 

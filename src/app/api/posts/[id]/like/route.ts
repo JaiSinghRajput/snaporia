@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
+import { pushUserNotification } from '@/lib/notifications'
 import { getCurrentUserProfile, getUserProfileById } from '@/lib/user'
 
 export async function POST(
@@ -47,7 +48,7 @@ export async function POST(
         select: { authorId: true },
       })
       if (post && post.authorId !== me.id) {
-        await prisma.notification.create({
+        const notif = await prisma.notification.create({
           data: {
             userId: post.authorId,
             actorId: me.id,
@@ -57,6 +58,14 @@ export async function POST(
             link: `/post/${postId}`,
             postId,
           },
+        })
+        // Push realtime update
+        await pushUserNotification(post.authorId, {
+          type: 'LIKE',
+          title: 'New like',
+          message: 'liked your post',
+          link: `/post/${postId}`,
+          postId,
         })
       }
     }

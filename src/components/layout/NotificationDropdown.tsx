@@ -6,6 +6,8 @@ import { useAuth } from "@clerk/nextjs"
 import { Bell, Loader2, UserPlus, Heart, MessageCircle, Share2, UserCheck, X } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { Button } from "@/components/ui/button"
+import { pusherClient } from "@/lib/pusher-client"
+import type { Channel } from "pusher-js"
 import Image from "next/image"
 
 interface Notification {
@@ -68,6 +70,43 @@ export default function NotificationDropdown() {
     const interval = setInterval(fetchUnreadCount, 30000)
     return () => clearInterval(interval)
     }, [isLoaded, userId])
+
+  // Realtime updates via Pusher private channel
+  useEffect(() => {
+    let channel: Channel | null = null
+    let channelName = ""
+    let active = true
+    const subscribe = async () => {
+      if (!isLoaded || !userId) return
+      try {
+        const res = await fetch('/api/users/me')
+        if (!res.ok) return
+        const data = await res.json() as { userId: string }
+        if (!active) return
+  channelName = `private-user-${data.userId}`
+  channel = pusherClient.subscribe(channelName)
+        channel.bind('notification:new', (payload: { unreadCount: number }) => {
+          setUnreadCount(payload.unreadCount ?? 0)
+          // Optionally refresh the list if dropdown is open
+          if (isOpen) {
+            fetchNotifications()
+          }
+        })
+      } catch {
+        // ignore
+      }
+    }
+    subscribe()
+    return () => {
+      active = false
+      try {
+        if (channel) {
+          channel.unbind_all()
+          if (channelName) pusherClient.unsubscribe(channelName)
+        }
+      } catch {}
+    }
+  }, [isLoaded, userId, isOpen])
 
   const fetchUnreadCount = async () => {
     try {

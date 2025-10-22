@@ -76,9 +76,9 @@ export default function RouteProgress() {
   if (!visible) return null
 
   return (
-    <div className="fixed inset-x-0 top-0 z-[1000] h-0.5 bg-transparent">
+    <div className="fixed inset-x-0 top-0 z-[1000] h-0.5 bg-transparent w-screen">
       <div
-        className="h-full w-full max-w-full origin-left bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 shadow-[0_0_10px_rgba(99,102,241,0.6)] transition-[transform,opacity] duration-150 ease-out"
+        className="h-full w-screen max-w-full origin-left bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 shadow-[0_0_10px_rgba(99,102,241,0.6)] transition-[transform,opacity] duration-150 ease-out"
         style={{ transform: `scaleX(${Math.max(0.02, progress / 100)})` }}
       />
     </div>

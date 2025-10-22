@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth, currentUser } from '@clerk/nextjs/server'
 import { followUser, getCurrentUserProfile, getUserProfileById } from '@/lib/user'
+import { pushUserNotification } from '@/lib/notifications'
 import { prisma } from '@/lib/prisma'
 
 /**
@@ -61,6 +62,16 @@ export async function POST(req: Request) {
     }
 
     const followResult = await followUser(currentUserProfile.id, targetUserId, targetUser.isPrivate)
+
+    // If request is pending, push realtime notification to target user
+    if (followResult.status === 'PENDING') {
+      await pushUserNotification(targetUserId, {
+        type: 'FOLLOW_REQUEST',
+        title: 'Follow request',
+        message: 'wants to follow you',
+        link: `/profile/${currentUserProfile.username || ''}`,
+      })
+    }
 
     return NextResponse.json({ 
       success: true, 

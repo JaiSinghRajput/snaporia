@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { getCurrentUserProfile } from '@/lib/user'
 import { prisma } from '@/lib/prisma'
+import { pushUserNotification } from '@/lib/notifications'
 
 /**
  * POST /api/notifications/read-all
@@ -33,7 +34,11 @@ export async function POST() {
         isRead: true,
       },
     })
-
+    await pushUserNotification(currentUserProfile.id, {
+      type: 'MENTION',
+      title: 'sync',
+      message: 'read-all-update',
+    })
     return NextResponse.json({ success: true, updated: result.count })
   } catch (error) {
     console.error('Error marking all notifications as read:', error)

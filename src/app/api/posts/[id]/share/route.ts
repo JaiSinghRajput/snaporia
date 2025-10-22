@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/prisma'
+import { pushUserNotification } from '@/lib/notifications'
 import { getCurrentUserProfile } from '@/lib/user'
 
 export async function POST(
@@ -34,6 +35,13 @@ export async function POST(
           link: `/post/${postId}`,
           postId,
         },
+      })
+      await pushUserNotification(post.authorId, {
+        type: 'SHARE',
+        title: 'Your post was shared',
+        message: 'shared your post',
+        link: `/post/${postId}`,
+        postId,
       })
     }
 

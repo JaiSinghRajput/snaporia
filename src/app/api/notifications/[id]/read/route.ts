@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { getCurrentUserProfile } from '@/lib/user'
 import { prisma } from '@/lib/prisma'
+import { pushUserNotification } from '@/lib/notifications'
 
 /**
  * POST /api/notifications/[id]/read
@@ -35,6 +36,12 @@ export async function POST(
       data: {
         isRead: true,
       },
+    })
+    // Broadcast updated unread count (no specific notification payload)
+    await pushUserNotification(currentUserProfile.id, {
+      type: 'MENTION',
+      title: 'sync',
+      message: 'read-update',
     })
 
     return NextResponse.json({ success: true })
