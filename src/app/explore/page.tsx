@@ -167,6 +167,20 @@ export default function ExplorePage() {
     return () => clearTimeout(timer)
   }, [searchQuery, activeTab, handleSearch])
 
+  // Remove deleted posts from current lists
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const id = (e as CustomEvent<string>).detail
+      setTrendingPosts((prev) => prev.filter((p) => p.id !== id))
+      setSearchResults((prev) => ({
+        ...prev,
+        posts: (prev.posts || []).filter((p) => p.id !== id),
+      }))
+    }
+    window.addEventListener('post-deleted', handler as EventListener)
+    return () => window.removeEventListener('post-deleted', handler as EventListener)
+  }, [])
+
   // Update URL params
   useEffect(() => {
     const params = new URLSearchParams()

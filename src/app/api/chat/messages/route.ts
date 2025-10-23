@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getAuth } from "@clerk/nextjs/server"
+import { auth } from "@clerk/nextjs/server"
 import prisma from "@/lib/prisma"
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
-  const { userId } = getAuth(req)
+  const { userId } = await auth()
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
   const conversationId = searchParams.get("conversationId")
@@ -41,6 +41,7 @@ export async function GET(req: NextRequest) {
     senderId: msg.senderId,
     createdAt: msg.createdAt.toISOString(),
     sender: msg.sender,
+    isRead: msg.isRead,
     status: msg.senderId === participant.userId 
       ? (msg.isRead ? 'read' : 'sent')
       : undefined

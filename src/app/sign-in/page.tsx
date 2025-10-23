@@ -22,6 +22,19 @@ export default function SignIn() {
 
   const { isLoaded, signIn, setActive } = useSignIn()
   const router = useRouter()
+  const [redirectTo, setRedirectTo] = useState<string>("/")
+  // Compute safe redirect from query string once on mount
+  React.useEffect(() => {
+    try {
+      const url = new URL(window.location.href)
+      import("@/lib/redirect").then(({ getSafeRedirect }) => {
+        const safe = getSafeRedirect(url, "/")
+        setRedirectTo(safe)
+      }).catch(() => setRedirectTo("/"))
+    } catch {
+      setRedirectTo("/")
+    }
+  }, [])
 
   const [emailAddress, setEmailAddress] = useState("")
   const [password, setPassword] = useState("")
@@ -45,7 +58,7 @@ export default function SignIn() {
 
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId })
-        router.push("/")
+        router.push(redirectTo || "/")
       } else {
         setError("Sign-in incomplete. Please try again.")
       }
@@ -66,7 +79,7 @@ export default function SignIn() {
       await signIn.authenticateWithRedirect({
         strategy: "oauth_google",
         redirectUrl: "/sso-callback",
-        redirectUrlComplete: "/",
+        redirectUrlComplete: redirectTo || "/",
       })
     } catch (err) {
       console.error("Google Sign-in failed:", err)

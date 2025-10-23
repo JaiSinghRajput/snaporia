@@ -21,6 +21,7 @@ interface Message {
   sender: UserProfile | null
   status?: 'pending' | 'sent' | 'read' | 'failed'
   tempId?: string
+  isRead?: boolean
 }
 
 function formatTime(dateString: string) {
@@ -143,13 +144,24 @@ export default function MessageThread({
     channel.bind('messages-read', (data: { readBy: string; messageIds: string[] }) => {
       if (data.readBy === currentUserId) return
       
-      setMessages(prev => 
-        prev.map(m => 
-          data.messageIds.includes(m.id) && m.senderId === currentUserId
-            ? { ...m, status: 'read' as const }
-            : m
-        )
-      )
+      setMessages(prev => {
+        // Find the latest read message timestamp
+        const readMessages = prev.filter(m => data.messageIds.includes(m.id))
+        if (readMessages.length === 0) return prev
+        
+        const latestReadTime = Math.max(...readMessages.map(m => new Date(m.createdAt).getTime()))
+        
+        // Mark all messages sent by current user before or at the latest read time as read
+        return prev.map(m => {
+          if (m.senderId === currentUserId) {
+            const msgTime = new Date(m.createdAt).getTime()
+            if (msgTime <= latestReadTime) {
+              return { ...m, status: 'read' as const }
+            }
+          }
+          return m
+        })
+      })
     })
 
     return () => {
@@ -186,12 +198,12 @@ export default function MessageThread({
     }
   }, [conversationId])
 
-  // Mark existing unread messages as read when messages are loaded
+  // Mark existing unread messages as read when messages are loaded or updated
   useEffect(() => {
     if (messages.length === 0 || loading) return
     
     const unreadMessageIds = messages
-      .filter(m => m.senderId !== currentUserId && m.status !== 'read')
+      .filter(m => m.senderId !== currentUserId && !m.isRead)
       .map(m => m.id)
     
     if (unreadMessageIds.length > 0) {
@@ -199,7 +211,7 @@ export default function MessageThread({
         markMessagesAsRead(unreadMessageIds)
       }, 500)
     }
-  }, [conversationId])
+  }, [messages, loading, currentUserId])
 
   const markMessagesAsRead = async (messageIds: string[]) => {
     if (!messageIds || messageIds.length === 0) return

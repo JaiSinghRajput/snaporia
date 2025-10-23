@@ -7,6 +7,7 @@ import { motion } from "framer-motion"
 import CommentsDrawer from "./CommentsDrawer"
 import ShareModal from "./ShareModal"
 import Image from "next/image"
+import Toast from "../ui/toast"
 
 interface PostCardProps {
   post: {
@@ -30,9 +31,10 @@ interface PostCardProps {
       views: number
     }
   }
+  onDeleted?: (postId: string) => void
 }
 
-export default function PostCard({ post }: PostCardProps) {
+export default function PostCard({ post, onDeleted }: PostCardProps) {
   const router = useRouter()
   const [isLiked, setIsLiked] = useState<boolean>(false)
   const [likeCount, setLikeCount] = useState<number>(post._count.likes)
@@ -41,7 +43,12 @@ export default function PostCard({ post }: PostCardProps) {
   const [commentsOpen, setCommentsOpen] = useState(false)
   const [shareModalOpen, setShareModalOpen] = useState(false)
   const [viewTracked, setViewTracked] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
+  const [showToast, setShowToast] = useState(false)
+  const [toastMessage, setToastMessage] = useState('')
   const cardRef = useRef<HTMLDivElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   const fullName = [post.author.firstName, post.author.lastName]
     .filter(Boolean)
@@ -80,6 +87,42 @@ export default function PostCard({ post }: PostCardProps) {
 
     return () => observer.disconnect()
   }, [viewTracked])
+
+  // Fetch current user to determine ownership (for Delete action)
+  useEffect(() => {
+    let cancelled = false
+    const fetchMe = async () => {
+      try {
+        const res = await fetch('/api/users/me')
+        if (!res.ok) return
+        const data = await res.json()
+        if (!cancelled) setCurrentUserId(data.userId)
+      } catch (_) {
+        // ignore
+      }
+    }
+    fetchMe()
+    return () => { cancelled = true }
+  }, [])
+
+  // Close menu on outside click or escape
+  useEffect(() => {
+    const onDocClick = (e: MouseEvent) => {
+      if (!menuOpen) return
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false)
+      }
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false)
+    }
+    document.addEventListener('mousedown', onDocClick)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDocClick)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [menuOpen])
 
   const trackView = async () => {
     try {
@@ -131,6 +174,38 @@ export default function PostCard({ post }: PostCardProps) {
     }
   }
 
+  const copyLink = async () => {
+    try {
+      const url = `${window.location.origin}/post/${post.id}`
+      await navigator.clipboard.writeText(url)
+      setToastMessage('Link copied to clipboard')
+      setShowToast(true)
+    } catch (_) {
+      setToastMessage('Unable to copy link')
+      setShowToast(true)
+    }
+  }
+
+  const deletePost = async () => {
+    const confirm = window.confirm('Delete this post? This action cannot be undone.')
+    if (!confirm) return
+    try {
+      const res = await fetch(`/api/posts/${post.id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Failed to delete')
+      // Notify parent feeds, too
+      window.dispatchEvent(new CustomEvent('post-deleted', { detail: post.id }))
+      setToastMessage('Post deleted')
+      setShowToast(true)
+      // Let parent remove this card if handler provided
+      onDeleted?.(post.id)
+    } catch (err) {
+      setToastMessage('Failed to delete post')
+      setShowToast(true)
+    } finally {
+      setMenuOpen(false)
+    }
+  }
+
   return (
     <>
       <motion.div
@@ -140,7 +215,7 @@ export default function PostCard({ post }: PostCardProps) {
         className="bg-white dark:bg-gray-900 rounded-xl shadow-md hover:shadow-lg transition-shadow overflow-hidden"
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4">
+        <div className="flex items-center justify-between p-4 relative">
           <div
             className="flex items-center gap-3 cursor-pointer"
             onClick={() => router.push(`/profile/${post.author.username}`)}
@@ -178,9 +253,77 @@ export default function PostCard({ post }: PostCardProps) {
               </p>
             </div>
           </div>
-          <button className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition">
+          <button
+            aria-haspopup="menu"
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((v) => !v)}
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+          >
             <MoreVertical className="w-5 h-5 text-gray-500" />
           </button>
+
+          {menuOpen && (
+            <div
+              ref={menuRef}
+              role="menu"
+              className="absolute right-3 top-14 z-20 w-56 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-lg overflow-hidden"
+            >
+              <button
+                role="menuitem"
+                onClick={() => { router.push(`/post/${post.id}`); setMenuOpen(false) }}
+                className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200"
+              >
+                Open post
+              </button>
+              <button
+                role="menuitem"
+                onClick={() => { router.push(`/profile/${post.author.username}`); setMenuOpen(false) }}
+                className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200"
+              >
+                View profile
+              </button>
+              <button
+                role="menuitem"
+                onClick={() => { copyLink(); setMenuOpen(false) }}
+                className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200"
+              >
+                Copy link
+              </button>
+              <button
+                role="menuitem"
+                onClick={() => { setShareModalOpen(true); setMenuOpen(false) }}
+                className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200"
+              >
+                Share...
+              </button>
+              <button
+                role="menuitem"
+                onClick={() => { setToastMessage('Reported. Thanks for the feedback.'); setShowToast(true); setMenuOpen(false) }}
+                className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200"
+              >
+                Report
+              </button>
+              {currentUserId === post.author.id && (
+                <>
+                  <div className="h-px bg-gray-200 dark:bg-gray-800" />
+                  <button
+                    role="menuitem"
+                    onClick={() => { router.push(`/post/${post.id}/edit`); setMenuOpen(false) }}
+                    className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-200"
+                  >
+                    Edit post
+                  </button>
+                  <button
+                    role="menuitem"
+                    onClick={deletePost}
+                    className="w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+                  >
+                    Delete post
+                  </button>
+                </>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Content */}
@@ -283,6 +426,9 @@ export default function PostCard({ post }: PostCardProps) {
         postId={post.id}
         postUrl={`${window.location.origin}/post/${post.id}`}
       />
+
+      {/* Toast */}
+      <Toast message={toastMessage} show={showToast} onClose={() => setShowToast(false)} />
     </>
   )
 }

@@ -62,7 +62,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <UploadQueueProvider>
             <ProfileSync />
             <Header/>
-            <main className="pt-20 pb-16 md:pb-0">{children}</main>
+            <main className="pt-16 pb-16 md:pb-0">{children}</main>
             <MobileNav/>
             <PWARegister/>
           </UploadQueueProvider>

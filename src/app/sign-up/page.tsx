@@ -22,6 +22,18 @@ export default function SignUp() {
 
   const { isLoaded, signUp, setActive } = useSignUp()
   const router = useRouter()
+  const [redirectTo, setRedirectTo] = useState<string>("/")
+  React.useEffect(() => {
+    try {
+      const url = new URL(window.location.href)
+      import("@/lib/redirect").then(({ getSafeRedirect }) => {
+        const safe = getSafeRedirect(url, "/")
+        setRedirectTo(safe)
+      }).catch(() => setRedirectTo("/"))
+    } catch {
+      setRedirectTo("/")
+    }
+  }, [])
 
   const [emailAddress, setEmailAddress] = useState("")
   const [password, setPassword] = useState("")
@@ -69,7 +81,7 @@ export default function SignUp() {
       const result = await signUp.attemptEmailAddressVerification({ code })
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId })
-        router.push("/")
+        router.push(redirectTo || "/")
       } else {
         setError("Verification failed. Please check the code.")
       }
@@ -88,7 +100,7 @@ export default function SignUp() {
       await signUp.authenticateWithRedirect({
         strategy: "oauth_google",
         redirectUrl: "/sso-callback",
-        redirectUrlComplete: "/",
+        redirectUrlComplete: redirectTo || "/",
       })
     } catch (err) {
       setError("Google signup failed. Try again.")
