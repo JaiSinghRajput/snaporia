@@ -1,7 +1,7 @@
 "use client"
 
 import { useUser } from "@clerk/nextjs"
-import { Home, Search, Bell, User, TrendingUp, Users } from "lucide-react"
+import { Home, Search, Bell, User, Users } from "lucide-react"
 import { useRouter, usePathname } from "next/navigation"
 import Image from "next/image"
 

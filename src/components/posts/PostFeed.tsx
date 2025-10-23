@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react"
 import PostCard from "./PostCard"
-import Loader from "../ui/Loader"
 
 interface Post {
   id: string
@@ -61,10 +60,6 @@ export default function PostFeed() {
     } finally {
       setIsLoading(false)
     }
-  }
-
-  const handlePostCreated = (newPost: Post) => {
-    setPosts([newPost, ...posts])
   }
 
   if (isLoading) {

@@ -5,11 +5,11 @@ import { getCurrentUserProfile } from '@/lib/user'
 import EditPostForm from '@/components/posts/EditPostForm'
 
 interface PageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default async function EditPostPage({ params }: PageProps) {
-  const { id } = params
+  const { id } = await params
   const { userId } = await auth()
   if (!userId) {
     redirect('/sign-in')

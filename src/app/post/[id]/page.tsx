@@ -5,11 +5,11 @@ import { getPostById } from '@/lib/posts'
 import { auth } from '@clerk/nextjs/server'
 
 interface PageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default async function PostPage({ params }: PageProps) {
-  const { id } = params
+  const { id } = await params
   const { userId } = await auth()
 
   const post = await getPostById(id, userId ?? undefined)

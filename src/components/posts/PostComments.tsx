@@ -14,6 +14,15 @@ type User = {
   avatar: string | null
 }
 
+type CommentData = {
+  id: string
+  content: string
+  createdAt: string | Date
+  user: User
+  replies?: CommentData[]
+  _count: { replies: number }
+}
+
 type Comment = {
   id: string
   content: string
@@ -60,10 +69,10 @@ export default function PostComments({ postId }: { postId: string }) {
         const res = await fetch(`/api/posts/${postId}/comments`)
         if (!res.ok) throw new Error('Failed to load comments')
         const data = await res.json()
-        const mapped: Comment[] = (data.comments || []).map((c: any) => ({
+        const mapped: Comment[] = (data.comments || []).map((c: CommentData) => ({
           ...c,
           createdAt: typeof c.createdAt === 'string' ? c.createdAt : new Date(c.createdAt).toISOString(),
-          replies: (c.replies || []).map((r: any) => ({
+          replies: (c.replies || []).map((r: CommentData) => ({
             ...r,
             createdAt: typeof r.createdAt === 'string' ? r.createdAt : new Date(r.createdAt).toISOString(),
           })),
@@ -127,7 +136,7 @@ export default function PostComments({ postId }: { postId: string }) {
       }
       if (!res.ok) throw new Error('Failed')
       const data = await res.json()
-      const r: any = data.comment
+      const r: CommentData = data.comment
       type FlatReply = Omit<Comment, 'replies'>
       const newReply: FlatReply = {
         ...r,
@@ -256,7 +265,7 @@ export default function PostComments({ postId }: { postId: string }) {
                               <div className="flex items-center gap-2 text-xs">
                                 <span className="font-medium text-gray-900 dark:text-white">{r.user.firstName || r.user.lastName ? `${r.user.firstName ?? ''} ${r.user.lastName ?? ''}`.trim() : `@${r.user.username}`}</span>
                                 <span className="text-gray-500 dark:text-gray-400">@{r.user.username}</span>
-                                <span className="text-gray-400">• {formatTime((r as any).createdAt)}</span>
+                                <span className="text-gray-400">• {formatTime(r.createdAt)}</span>
                               </div>
                               <p className="text-gray-800 dark:text-gray-200 whitespace-pre-wrap mt-1">{r.content}</p>
                               <div className="mt-2">

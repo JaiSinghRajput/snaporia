@@ -105,7 +105,7 @@ export default function HomePage() {
                     </svg>
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Discover Trends</h3>
-                  <p className="text-gray-600 dark:text-gray-400">Explore trending topics, hashtags, and discover new content you'll love.</p>
+                  <p className="text-gray-600 dark:text-gray-400">Explore trending topics, hashtags, and discover new content you&apos;ll love.</p>
                 </div>
               </div>
             </div>
