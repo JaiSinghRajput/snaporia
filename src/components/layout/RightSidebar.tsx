@@ -34,7 +34,7 @@ export default function RightSidebar() {
   ]
 
   return (
-    <aside className="hidden xl:block xl:w-80 fixed right-0 top-16 bottom-0 border-l border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 p-4 overflow-y-auto">
+  <aside className="hidden xl:block xl:w-80 fixed right-0 top-16 bottom-0 border-l border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 p-4 overflow-y-auto overscroll-contain" style={{ overflowAnchor: 'none' }}>
       {/* Trending Section */}
       <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl p-4 mb-4">
         <div className="flex items-center gap-2 mb-4">

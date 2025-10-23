@@ -1,43 +1,51 @@
-import { Suspense } from "react"
 import { SignedIn } from "@clerk/nextjs"
-import ChatList from "@/components/chat/ChatList"
-import { MessageCircle, Loader2 } from "lucide-react"
+import { MessageCircle } from "lucide-react"
+import ConversationListClient from "@/components/chat/ConversationListClient"
+import PusherStatus from "@/components/chat/PusherStatus"
+import { getCurrentUserProfile } from "@/lib/user"
+import { redirect } from "next/navigation"
 
-export default function MessagesPage() {
+export default async function MessagesPage() {
+  const currentUser = await getCurrentUserProfile()
+
+  if (!currentUser) {
+    redirect('/sign-in')
+  }
+
   return (
     <SignedIn>
-      <div className="w-full h-[100dvh] flex flex-col sm:flex-row bg-white dark:bg-gray-900">
-        {/* Left: Chat List (always visible) */}
-        <div className="w-full sm:w-[340px] h-[100dvh] flex flex-col border-r border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-    <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-3 sm:px-6 py-3 sm:py-5 flex items-center gap-2 sm:gap-3 shadow-lg sticky top-16 z-40 min-h-[56px] sm:min-h-[64px]">
-            <MessageCircle className="w-6 h-6 sm:w-7 sm:h-7 flex-shrink-0" />
+      <PusherStatus />
+      <div className="w-full h-[calc(100dvh-4rem)] flex flex-col sm:flex-row bg-white dark:bg-gray-900">
+        {/* Left: Conversations List */}
+        <div className="w-full sm:w-[380px] h-full flex flex-col border-r border-gray-200 dark:border-gray-800">
+          {/* Header */}
+          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white px-4 py-4 flex items-center gap-3">
+            <MessageCircle className="w-6 h-6 flex-shrink-0" />
             <div className="flex flex-col min-w-0">
-              <h1 className="text-lg sm:text-2xl font-bold truncate">Messages</h1>
-              <p className="text-xs sm:text-sm text-white/80 mt-0.5 truncate">Stay connected with your friends</p>
+              <h1 className="text-xl font-bold">Messages</h1>
+              <p className="text-sm text-white/80">Stay connected</p>
             </div>
           </div>
-          <div className="flex-1 overflow-y-auto pb-2 sm:pb-4">
-            <Suspense fallback={
-              <div className="flex items-center justify-center h-full bg-white dark:bg-gray-900">
-                <div className="text-center">
-                  <Loader2 className="w-7 h-7 sm:w-10 sm:h-10 animate-spin text-purple-600 dark:text-purple-400 mx-auto mb-3" />
-                  <p className="text-gray-500 dark:text-gray-400 text-xs sm:text-sm">Loading conversations...</p>
-                </div>
-              </div>
-            }>
-              <ChatList />
-            </Suspense>
+
+          {/* Conversations */}
+          <div className="flex-1 overflow-hidden">
+            <ConversationListClient currentUserId={currentUser.id} />
           </div>
         </div>
-        {/* Middle: Spacer or future features (hidden for now) */}
-        <div className="hidden sm:block flex-shrink-0 w-[1px] bg-gray-100 dark:bg-gray-800" />
-        {/* Right: Chat window (desktop only, resizable) */}
-        <div className="hidden sm:flex flex-1 h-[100dvh] min-w-0 relative">
-          {/* Placeholder: Select a chat to start messaging */}
-          <div className="flex-1 flex items-center justify-center text-gray-400 dark:text-gray-500 text-lg">
-            Select a conversation to start chatting
+
+        {/* Right: Empty State (desktop only) */}
+        <div className="hidden sm:flex flex-1 items-center justify-center bg-gray-50 dark:bg-gray-900">
+          <div className="text-center p-8">
+            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-indigo-900/20 dark:to-purple-900/20 flex items-center justify-center">
+              <MessageCircle className="w-10 h-10 text-indigo-600 dark:text-indigo-400" />
+            </div>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+              Select a conversation
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Choose a conversation from the list to start chatting
+            </p>
           </div>
-          {/* In the [id]/page.tsx, the chat window will be shown here via route */}
         </div>
       </div>
     </SignedIn>

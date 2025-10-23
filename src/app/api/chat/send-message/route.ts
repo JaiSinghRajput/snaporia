@@ -27,15 +27,45 @@ export async function POST(req: NextRequest) {
       imageUrl,
     },
     include: {
-      sender: true,
+      sender: {
+        select: {
+          id: true,
+          username: true,
+          firstName: true,
+          lastName: true,
+          avatar: true
+        }
+      },
     },
   })
 
+  // Update conversation's lastMessageAt
+  await prisma.conversation.update({
+    where: { id: conversationId },
+    data: { lastMessageAt: new Date() }
+  })
 
   // Trigger Pusher event for real-time update
   try {
-    await pusherServer.trigger(`conversation-${conversationId}`, "message", message)
-  } catch {}
+    await pusherServer.trigger(`private-conversation-${conversationId}`, "new-message", {
+      id: message.id,
+      content: message.content,
+      senderId: message.senderId,
+      createdAt: message.createdAt.toISOString(),
+      sender: message.sender,
+      status: 'sent'
+    })
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Pusher error:', error)
+    }
+  }
 
-  return NextResponse.json({ message })
+  return NextResponse.json({ 
+    message: {
+      ...message,
+      createdAt: message.createdAt.toISOString(),
+      status: 'sent'
+    } 
+  })
 }

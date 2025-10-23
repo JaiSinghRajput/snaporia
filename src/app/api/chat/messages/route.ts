@@ -20,9 +20,31 @@ export async function GET(req: NextRequest) {
   const messages = await prisma.message.findMany({
     where: { conversationId },
     orderBy: { createdAt: "asc" },
-    include: { sender: true },
-    take: 50, // pagination can be added
+    include: { 
+      sender: {
+        select: {
+          id: true,
+          username: true,
+          firstName: true,
+          lastName: true,
+          avatar: true
+        }
+      }
+    },
+    take: 100,
   })
 
-  return NextResponse.json({ messages })
+  // Transform messages to include proper status
+  const transformedMessages = messages.map(msg => ({
+    id: msg.id,
+    content: msg.content,
+    senderId: msg.senderId,
+    createdAt: msg.createdAt.toISOString(),
+    sender: msg.sender,
+    status: msg.senderId === participant.userId 
+      ? (msg.isRead ? 'read' : 'sent')
+      : undefined
+  }))
+
+  return NextResponse.json({ messages: transformedMessages })
 }

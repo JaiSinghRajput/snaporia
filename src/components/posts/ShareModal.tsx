@@ -85,7 +85,7 @@ export default function ShareModal({ isOpen, onClose, postId, postUrl }: ShareMo
       />
 
       {/* Modal - Bottom drawer on mobile, centered on desktop */}
-      <div className="relative bg-white dark:bg-gray-900 rounded-t-3xl md:rounded-2xl shadow-2xl max-w-md w-full p-6 z-10 max-h-[85vh] overflow-y-auto">
+  <div className="relative bg-white dark:bg-gray-900 rounded-t-3xl md:rounded-2xl shadow-2xl max-w-md w-full p-6 z-10 max-h-[85vh] overflow-y-auto overscroll-contain" style={{ overflowAnchor: 'none' }}>
         {/* Mobile Handle Bar */}
         <div className="md:hidden flex justify-center mb-4">
           <div className="w-12 h-1.5 bg-gray-300 dark:bg-gray-700 rounded-full" />

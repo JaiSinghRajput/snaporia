@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
 import { Sun, Moon, MessageCircle } from "lucide-react"
 import NotificationDropdown from "./NotificationDropdown"
-import InstallPWAButton from "./InstallPWAButton"
 
 export default function Header() {
   const router = useRouter()
@@ -65,7 +64,6 @@ export default function Header() {
 
         <SignedIn>
           <NotificationDropdown />
-          <InstallPWAButton />
           <button
             onClick={() => router.push('/messages')}
             className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition"

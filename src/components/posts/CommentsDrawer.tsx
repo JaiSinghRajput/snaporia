@@ -95,7 +95,7 @@ export default function CommentsDrawer({ postId, isOpen, onClose }: CommentsDraw
           </button>
         </div>
 
-        <div className="max-h-[50vh] overflow-y-auto p-4 space-y-4">
+  <div className="max-h-[50vh] overflow-y-auto overscroll-contain p-4 space-y-4" style={{ overflowAnchor: 'none' }}>
           {loading ? (
             <p className="text-sm text-gray-500">Loading...</p>
           ) : error ? (
