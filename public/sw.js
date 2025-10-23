@@ -52,3 +52,51 @@ self.addEventListener('fetch', (event) => {
     );
   }
 });
+
+// --- Web Push: handle incoming push for messaging ---
+self.addEventListener('push', (event) => {
+  try {
+    const data = event.data ? event.data.json() : {};
+    const title = data.title || 'New message';
+    const options = {
+      body: data.body || 'You have a new message',
+      icon: data.icon || '/icons/android/android-launchericon-96-96.png',
+      badge: data.badge || '/icons/android/android-launchericon-48-48.png',
+      tag: data.tag || 'message',
+      renotify: true,
+      data: {
+        url: data.url || '/',
+        conversationId: data.conversationId,
+      },
+      actions: [
+        { action: 'open', title: 'Open' },
+      ],
+    };
+    event.waitUntil(self.registration.showNotification(title, options));
+  } catch (e) {
+    // fallback
+    event.waitUntil(self.registration.showNotification('New message', { body: 'Open to view' }));
+  }
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const targetUrl = (event.notification && event.notification.data && event.notification.data.url) || '/';
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      for (const client of clientList) {
+        // Focus existing tab if already open
+        if ('focus' in client) {
+          const url = new URL(client.url);
+          if (url.pathname === targetUrl || url.href.includes(targetUrl)) {
+            return client.focus();
+          }
+        }
+      }
+      // Otherwise open a new window
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
+  );
+});

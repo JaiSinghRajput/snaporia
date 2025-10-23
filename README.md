@@ -65,6 +65,9 @@ Required environment variables:
 - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` - From Clerk Dashboard
 - `CLERK_SECRET_KEY` - From Clerk Dashboard
 - `CLERK_WEBHOOK_SECRET` - From Clerk Webhooks (after setup)
+ - `NEXT_PUBLIC_PUSHER_KEY`, `NEXT_PUBLIC_PUSHER_CLUSTER`, `PUSHER_APP_ID`, `PUSHER_KEY`, `PUSHER_SECRET`, `PUSHER_CLUSTER` - For realtime (Pusher)
+ - `SNAPORIA_AWS_REGION`, `SNAPORIA_AWS_S3_BUCKET`, `SNAPORIA_AWS_ACCESS_KEY_ID`, `SNAPORIA_AWS_SECRET_ACCESS_KEY` - For media uploads (S3)
+ - `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` - For Web Push notifications (see below)
 
 ### 4. Set up the database
 
@@ -96,6 +99,48 @@ pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) to see the app.
+
+## 🔔 PWA Push Notifications (Web Push)
+
+This project supports real-time push notifications for new messages via the browser’s Push API.
+
+Setup steps:
+
+1) Generate VAPID keys (one-time)
+
+You can generate keys with:
+
+```
+npx web-push generate-vapid-keys
+```
+
+Add the output as environment variables:
+
+```
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=YOUR_PUBLIC_KEY
+VAPID_PRIVATE_KEY=YOUR_PRIVATE_KEY
+```
+
+2) Ensure HTTPS (or localhost)
+
+Web Push requires a secure context. Use localhost for development or HTTPS in production.
+
+3) Allow notifications in the UI
+
+Open the app and click “Enable notifications” in the right sidebar prompt. You can re-trigger via a helper available in the browser console:
+
+```
+window.enablePushNotifications?.()
+```
+
+4) Test delivery
+
+Log in as User A in one browser and send a message to User B (who has enabled notifications) from another session/account. You should see a push notification; clicking it deep-links to the conversation.
+
+Notes:
+- If you deny permission, you’ll need to manually re-enable notifications in the browser site settings.
+- Expired subscriptions are auto-cleaned when detected during delivery.
+- For production, rotate and store VAPID keys securely.
 
 ## 📁 Project Structure
 

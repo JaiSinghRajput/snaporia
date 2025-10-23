@@ -5,6 +5,12 @@ import Image from "next/image"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 
+declare global {
+  interface Window {
+    enablePushNotifications?: () => Promise<boolean>
+  }
+}
+
 interface Trend {
   tag: string
   posts: string
@@ -24,10 +30,14 @@ export default function RightSidebar() {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([])
   const [loadingTrends, setLoadingTrends] = useState(true)
   const [loadingSuggestions, setLoadingSuggestions] = useState(true)
+  const [showEnablePush, setShowEnablePush] = useState(false)
 
   useEffect(() => {
     fetchTrends()
     fetchSuggestions()
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      setShowEnablePush(Notification.permission === 'default')
+    }
   }, [])
 
   const fetchTrends = async () => {
@@ -60,6 +70,31 @@ export default function RightSidebar() {
 
   return (
   <aside className="hidden xl:block xl:w-80 fixed right-0 top-16 bottom-0 border-l border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950 p-4 overflow-y-auto overscroll-contain" style={{ overflowAnchor: 'none' }}>
+      {/* Enable Notifications Prompt */}
+      {showEnablePush && (
+        <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-2xl p-4 mb-4">
+          <div className="flex items-start gap-3">
+            <svg className="w-5 h-5 text-indigo-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 10-12 0v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+            <div className="flex-1">
+              <p className="font-semibold text-sm text-gray-900 dark:text-white">Enable notifications</p>
+              <p className="text-xs text-gray-600 dark:text-gray-400 mt-1">Get alerts for new messages and activity.</p>
+              <button
+                onClick={async () => {
+                  try {
+                    const ok = await window.enablePushNotifications?.()
+                    if (ok) setShowEnablePush(false)
+                  } catch {}
+                }}
+                className="mt-3 px-3 py-1.5 text-xs bg-indigo-600 text-white rounded-lg hover:bg-indigo-700"
+              >
+                Turn on
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Trending Section */}
       <div className="bg-gray-50 dark:bg-gray-900 rounded-2xl p-4 mb-4">
         <div className="flex items-center gap-2 mb-4">

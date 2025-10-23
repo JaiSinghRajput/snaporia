@@ -128,7 +128,7 @@ export default function NotificationDropdown() {
   const fetchNotifications = async () => {
     setLoading(true)
     try {
-      const response = await fetch("/api/notifications")
+      const response = await fetch("/api/notifications/unread")
       if (response.ok) {
         const data = await response.json()
         setNotifications(data.notifications)
@@ -141,10 +141,27 @@ export default function NotificationDropdown() {
     }
   }
 
-  const handleOpen = () => {
+  const handleOpen = async () => {
     setIsOpen(!isOpen)
     if (!isOpen) {
-      fetchNotifications()
+      await fetchNotifications()
+      // Mark all as read when dropdown opens
+      markAllAsRead()
+    }
+  }
+
+  const markAllAsRead = async () => {
+    try {
+      await fetch('/api/notifications/read-all', {
+        method: 'POST',
+      })
+      // Update local state
+      setNotifications((prev) =>
+        prev.map((notif) => ({ ...notif, isRead: true }))
+      )
+      setUnreadCount(0)
+    } catch (error) {
+      console.error('Error marking all as read:', error)
     }
   }
 

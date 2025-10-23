@@ -4,8 +4,8 @@ import { getCurrentUserProfile } from '@/lib/user'
 import { prisma } from '@/lib/prisma'
 
 /**
- * GET /api/notifications
- * Get all notifications for the current user
+ * GET /api/notifications/unread
+ * Get only unread notifications for the header dropdown
  */
 export async function GET() {
   try {
@@ -21,15 +21,16 @@ export async function GET() {
       return NextResponse.json({ error: 'User profile not found' }, { status: 404 })
     }
 
-    // Get all regular notifications (for main notifications page)
+    // Get only unread regular notifications
     const regularNotifications = await prisma.notification.findMany({
       where: {
         userId: currentUserProfile.id,
+        isRead: false,
       },
       orderBy: {
         createdAt: 'desc',
       },
-      take: 50,
+      take: 20, // Limit to 20 for dropdown
       include: {
         actor: {
           select: {
@@ -44,7 +45,7 @@ export async function GET() {
       },
     })
 
-    // Get pending follow requests
+    // Get pending follow requests (always shown as unread)
     const followRequests = await prisma.follow.findMany({
       where: {
         followingId: currentUserProfile.id,
@@ -65,6 +66,7 @@ export async function GET() {
       orderBy: {
         createdAt: 'desc',
       },
+      take: 10,
     })
 
     // Convert follow requests to notification format
@@ -80,7 +82,7 @@ export async function GET() {
       },
     }))
 
-    // Combine and sort all notifications
+    // Combine and sort all unread notifications
     const allNotifications = [
       ...followRequestNotifications,
       ...regularNotifications.map((notif) => ({
@@ -96,14 +98,14 @@ export async function GET() {
       })),
     ].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
 
-    const unreadCount = allNotifications.filter((n) => !n.isRead).length
+    const unreadCount = allNotifications.length
 
     return NextResponse.json({
       notifications: allNotifications,
       unreadCount,
     })
   } catch (error: unknown) {
-    console.error('Error fetching notifications:', error)
+    console.error('Error fetching unread notifications:', error)
     return NextResponse.json({ error: 'Failed to fetch notifications' }, { status: 500 })
   }
 }

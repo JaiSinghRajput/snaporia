@@ -53,6 +53,9 @@ model UserProfile {
   notificationsReceived  Notification[] @relation("NotificationsReceived")
   notificationsTriggered Notification[] @relation("NotificationsTriggered")
 
+  // Web Push
+  webPushSubscriptions  WebPushSubscription[]
+
   @@index([clerkUserId])
   @@index([username])
   @@index([email])
@@ -319,4 +322,22 @@ enum NotificationType {
   FOLLOW_REQUEST
   SHARE
   MENTION
+}
+
+// ============================================
+// WEB PUSH SUBSCRIPTIONS FOR PWA NOTIFICATIONS
+// ============================================
+model WebPushSubscription {
+  id        String      @id @default(cuid())
+  userId    String
+  endpoint  String      @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  user      UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("web_push_subscriptions")
 }

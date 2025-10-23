@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@clerk/nextjs/server"
 import prisma from "@/lib/prisma"
 import { pusherServer } from "@/lib/pusher"
+import webpush, { type PushSubscription } from "web-push"
 
 export async function POST(req: NextRequest) {
   const { userId } = await auth()
@@ -58,6 +59,60 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     if (process.env.NODE_ENV === 'development') {
       console.error('Pusher error:', error)
+    }
+  }
+
+  // Web Push: notify other participants (not the sender)
+  try {
+    const VAPID_PUBLIC = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+    const VAPID_PRIVATE = process.env.VAPID_PRIVATE_KEY
+    if (VAPID_PUBLIC && VAPID_PRIVATE) {
+      webpush.setVapidDetails(
+        'mailto:notify@snaporia.app',
+        VAPID_PUBLIC,
+        VAPID_PRIVATE
+      )
+
+      const participants = await prisma.conversationParticipant.findMany({
+        where: { conversationId },
+        select: { userId: true }
+      })
+      const recipientIds = participants.map(p => p.userId).filter(id => id !== participant.userId)
+      if (recipientIds.length > 0) {
+        type DBPushSub = { endpoint: string; p256dh: string; auth: string }
+        const subs = await prisma.webPushSubscription.findMany({
+          where: { userId: { in: recipientIds } }
+        }) as unknown as DBPushSub[]
+
+        const payload = JSON.stringify({
+          title: message.sender?.firstName ? `${message.sender.firstName} sent a message` : 'New message',
+          body: message.content?.slice(0, 140) || 'Image',
+          url: `/messages/${conversationId}`,
+          tag: `conversation-${conversationId}`,
+        })
+
+  await Promise.all(subs.map(async (s: DBPushSub) => {
+          try {
+            const subscription: PushSubscription = {
+              endpoint: s.endpoint,
+              keys: { p256dh: s.p256dh, auth: s.auth },
+            }
+            await webpush.sendNotification(subscription, payload)
+          } catch (err: unknown) {
+            const code = (err as { statusCode?: number })?.statusCode
+            // Clean up expired subscriptions
+            if (code === 410 || code === 404) {
+              await prisma.webPushSubscription.delete({ where: { endpoint: s.endpoint } })
+            } else if (process.env.NODE_ENV === 'development') {
+              console.error('Web push error', err)
+            }
+          }
+        }))
+      }
+    }
+  } catch (error) {
+    if (process.env.NODE_ENV === 'development') {
+      console.error('Push notify error:', error)
     }
   }
 
