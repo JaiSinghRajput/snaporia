@@ -66,7 +66,10 @@ export async function POST(req: NextRequest) {
   try {
     const VAPID_PUBLIC = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
     const VAPID_PRIVATE = process.env.VAPID_PRIVATE_KEY
-    if (VAPID_PUBLIC && VAPID_PRIVATE) {
+    
+    if (!VAPID_PUBLIC || !VAPID_PRIVATE) {
+      console.warn('⚠️ VAPID keys not configured - push notifications disabled')
+    } else {
       webpush.setVapidDetails(
         'mailto:notify@snaporia.app',
         VAPID_PUBLIC,
@@ -78,42 +81,53 @@ export async function POST(req: NextRequest) {
         select: { userId: true }
       })
       const recipientIds = participants.map(p => p.userId).filter(id => id !== participant.userId)
+      
       if (recipientIds.length > 0) {
         type DBPushSub = { endpoint: string; p256dh: string; auth: string }
         const subs = await prisma.webPushSubscription.findMany({
           where: { userId: { in: recipientIds } }
         }) as unknown as DBPushSub[]
 
+        console.log(`📤 Sending push to ${subs.length} subscription(s) for ${recipientIds.length} recipient(s)`)
+
         const payload = JSON.stringify({
           title: message.sender?.firstName ? `${message.sender.firstName} sent a message` : 'New message',
           body: message.content?.slice(0, 140) || 'Image',
           url: `/messages/${conversationId}`,
           tag: `conversation-${conversationId}`,
+          conversationId,
         })
 
-  await Promise.all(subs.map(async (s: DBPushSub) => {
+        const results = await Promise.allSettled(subs.map(async (s: DBPushSub) => {
           try {
             const subscription: PushSubscription = {
               endpoint: s.endpoint,
               keys: { p256dh: s.p256dh, auth: s.auth },
             }
             await webpush.sendNotification(subscription, payload)
+            console.log('✅ Push sent to:', s.endpoint.substring(0, 50) + '...')
           } catch (err: unknown) {
             const code = (err as { statusCode?: number })?.statusCode
             // Clean up expired subscriptions
             if (code === 410 || code === 404) {
+              console.log('🗑️ Removing expired subscription:', s.endpoint.substring(0, 50) + '...')
               await prisma.webPushSubscription.delete({ where: { endpoint: s.endpoint } })
-            } else if (process.env.NODE_ENV === 'development') {
-              console.error('Web push error', err)
+            } else {
+              console.error('❌ Push send failed:', err)
+              throw err
             }
           }
         }))
+        
+        const successful = results.filter(r => r.status === 'fulfilled').length
+        const failed = results.filter(r => r.status === 'rejected').length
+        console.log(`📊 Push results: ${successful} sent, ${failed} failed`)
+      } else {
+        console.log('ℹ️ No other participants to notify')
       }
     }
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('Push notify error:', error)
-    }
+    console.error('❌ Push notify error:', error)
   }
 
   return NextResponse.json({ 

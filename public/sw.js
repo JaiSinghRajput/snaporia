@@ -1,4 +1,4 @@
-const CACHE_NAME = 'snaporia-cache-v1';
+const CACHE_NAME = 'snaporia-cache-v3';
 const ASSETS = [
   '/',
   '/manifest.webmanifest',
@@ -39,6 +39,15 @@ self.addEventListener('fetch', (event) => {
   }
 
   const url = new URL(request.url);
+
+  // Bypass cache for API requests to ensure fresh data (e.g., chat messages)
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(
+      fetch(request).catch(() => caches.match(request))
+    );
+    return;
+  }
+
   if (url.origin === self.location.origin) {
     event.respondWith(
       caches.match(request).then((cached) => {

@@ -2,6 +2,7 @@ import { SignedIn } from "@clerk/nextjs"
 import { MessageCircle } from "lucide-react"
 import ConversationListClient from "@/components/chat/ConversationListClient"
 import PusherStatus from "@/components/chat/PusherStatus"
+import MobileNotificationFAB from "@/components/layout/MobileNotificationFAB"
 import { getCurrentUserProfile } from "@/lib/user"
 import { redirect } from "next/navigation"
 
@@ -15,6 +16,7 @@ export default async function MessagesPage() {
   return (
     <SignedIn>
       <PusherStatus />
+      <MobileNotificationFAB />
       <div className="w-full h-[calc(100dvh-4rem)] flex flex-col sm:flex-row bg-white dark:bg-gray-900">
         {/* Left: Conversations List */}
         <div className="w-full sm:w-[380px] h-full flex flex-col border-r border-gray-200 dark:border-gray-800">

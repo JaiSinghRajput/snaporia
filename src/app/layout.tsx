@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
 import Header from "@/components/layout/Header"
 import MobileNav from "@/components/layout/MobileNav"
+import MobileNotificationBanner from "@/components/layout/MobileNotificationBanner"
 import ProfileSync from "@/components/auth/ProfileSync"
 import UploadQueueProvider from "@/components/providers/UploadQueueProvider"
 import RouteProgress from "@/components/layout/RouteProgress"
@@ -62,6 +63,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <UploadQueueProvider>
             <ProfileSync />
             <Header/>
+            <MobileNotificationBanner />
             <main className="pt-16 pb-16 md:pb-0">{children}</main>
             <MobileNav/>
             <PWARegister/>

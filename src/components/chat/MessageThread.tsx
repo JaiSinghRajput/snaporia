@@ -272,7 +272,7 @@ export default function MessageThread({
   const loadMessages = async () => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/chat/messages?conversationId=${conversationId}`)
+      const res = await fetch(`/api/chat/messages?conversationId=${conversationId}&ts=${Date.now()}` , { cache: 'no-store' })
       if (!res.ok) throw new Error('Failed to load messages')
       const data = await res.json()
       setMessages(data.messages || [])
