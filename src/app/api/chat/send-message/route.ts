@@ -104,7 +104,14 @@ export async function POST(req: NextRequest) {
               endpoint: s.endpoint,
               keys: { p256dh: s.p256dh, auth: s.auth },
             }
-            await webpush.sendNotification(subscription, payload)
+            // Improve delivery when app is minimized/closed by setting TTL and high urgency
+            await webpush.sendNotification(subscription, payload, {
+              TTL: 60 * 60 * 24, // 24 hours
+              headers: {
+                urgency: 'high',
+                topic: `conversation-${conversationId}`,
+              },
+            })
             console.log('✅ Push sent to:', s.endpoint.substring(0, 50) + '...')
           } catch (err: unknown) {
             const code = (err as { statusCode?: number })?.statusCode

@@ -73,6 +73,9 @@ self.addEventListener('push', (event) => {
       badge: data.badge || '/icons/android/android-launchericon-48-48.png',
       tag: data.tag || 'message',
       renotify: true,
+      silent: false,
+      requireInteraction: true,
+      timestamp: Date.now(),
       data: {
         url: data.url || '/',
         conversationId: data.conversationId,
